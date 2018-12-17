@@ -11,7 +11,7 @@ import (
 )
 
 var textToParse = flag.String("text", "", "testo da parsare")
-var serverAddress = flag.String("server", "localhost:1234", "master server")
+var serverAddress = flag.String("server", st.MasterAddress, "master server")
 
 func main() {
 	flag.Parse()
