@@ -17,6 +17,8 @@ func main() {
 
 	server := com.ConnectToHost(*serverAddress)
 
+	slaveData := st.SlaveData{}
+	slaveServer := com.RegisterRPCNamedService("SlaveData", slaveData)
 	//todo passare riferimento alle strutture di join del master
 	jr := st.JoinRequest{"localhost", *slavePort}
 	var msgFromServer = &st.ResponseRequest{}
@@ -27,4 +29,14 @@ func main() {
 	}
 	fmt.Printf("JoinRequest.Join: %s\n", msgFromServer.ResponseMessage)
 
+	slaveAddress := "localhost" + st.SlavePort
+	l := com.CreatePortListener(slaveAddress)
+
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			log.Print(err)
+		}
+		go slaveServer.ServeConn(conn)
+	}
 }
