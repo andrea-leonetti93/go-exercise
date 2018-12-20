@@ -2,6 +2,9 @@ package structs
 
 import (
 	"fmt"
+	"unicode"
+
+	hash "go-exercise/hash"
 )
 
 // StringMsg fanc
@@ -55,8 +58,49 @@ type SlaveData struct {
 	textToParse    string
 }
 
+// TextParse ciao
+func TextParse(text string) []string {
+	var splittedString []string
+	word := ""
+	h := hash.ValueHashtable{}
+	for _, r := range text {
+
+		if !unicode.IsLetter(r) && word != "" {
+			key := hash.Key(word)
+			splittedString = append(splittedString, word)
+			if h.IfWordExist(key) != 0 {
+				h.Increment(key)
+			} else {
+				v := hash.Value{word, 1}
+				h.Put(key, v)
+			}
+			/*
+				* if word exists: count +=1
+				else key = word, count = 1
+			*/
+			word = ""
+			continue
+		} else {
+			word += string(r)
+		}
+	}
+	/*f := func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+	}*/
+	//splittedString = strings.FieldsFunc(text, f)
+	//fmt.Printf("Fields are: %q", strings.FieldsFunc("  foo1;bar2,baz3...", f))
+	//fmt.Printf("splittedString: %s\n", splittedString[5])
+	//splittedString1 := strings.Split(splittedString, " ")
+	fmt.Println("Final Hash: ")
+	for key, value := range h.Items {
+		fmt.Printf("[key: %d, value : %s %d ]", key, value.Word, value.Count)
+	}
+	println("\n")
+	return splittedString
+}
+
 //SlaveJob slave work
-func (s *SlaveData) SlaveJob() []Dictionary {
+func (s *SlaveData) SlaveJob(data SlaveData) []Dictionary {
 	//d := []Dictionary
 
 	return nil
