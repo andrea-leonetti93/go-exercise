@@ -2,6 +2,8 @@ package structs
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"unicode"
 
 	hash "go-exercise/hash"
@@ -52,51 +54,67 @@ func (j *JoinRequest) Join(join *JoinRequest, result *ResponseRequest) error {
 
 ////////slave
 
+// SlaveResponse send on channel from slave to master
+type SlaveResponse struct {
+	WordHashMap hash.ValueHashtable
+}
+
 //SlaveData : data used from slave to count
 type SlaveData struct {
-	lettersToCheck []string
-	textToParse    string
+	textToParse string
+}
+
+//LavoroSlave ciao
+func (s *SlaveData) LavoroSlave(text string, result SlaveResponse) {
+
+	result.WordHashMap = TextParse(text)
+}
+
+func dataOrder(h hash.ValueHashtable) {
+	//var keys []int
+	keys := make([]string, 0, h.Size())
+	for k := range h.Items {
+		keys = append(keys, string(k))
+	}
+	//sort.Ints(keys)
+	sort.Strings(keys)
+	// To perform the opertion you want
+	for _, k := range keys {
+		fmt.Println(k, h.Items[hash.Key(k)])
+	}
+
+	/*for _, k := range keys {
+		fmt.Println("Key:", k, "Value:", hash.Items[k])
+	}*/
 }
 
 // TextParse ciao
-func TextParse(text string) []string {
+func TextParse(text string) hash.ValueHashtable {
 	var splittedString []string
 	word := ""
 	h := hash.ValueHashtable{}
 	for _, r := range text {
 
 		if !unicode.IsLetter(r) && word != "" {
-			key := hash.Key(word)
+			//key := hash.Key(word)
+			word = strings.ToLower(word)
 			splittedString = append(splittedString, word)
-			if h.IfWordExist(key) != 0 {
-				h.Increment(key)
+			if h.IfWordExist(hash.Key(word)) != 0 {
+				h.Increment(hash.Key(word))
 			} else {
-				v := hash.Value{word, 1}
-				h.Put(key, v)
+				//v := hash.Value{word, 1}
+
+				h.Put(hash.Key(word), 1)
 			}
-			/*
-				* if word exists: count +=1
-				else key = word, count = 1
-			*/
 			word = ""
-			continue
 		} else {
-			word += string(r)
+			if !unicode.IsSpace(r) {
+				word += string(r)
+			}
 		}
 	}
-	/*f := func(c rune) bool {
-		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
-	}*/
-	//splittedString = strings.FieldsFunc(text, f)
-	//fmt.Printf("Fields are: %q", strings.FieldsFunc("  foo1;bar2,baz3...", f))
-	//fmt.Printf("splittedString: %s\n", splittedString[5])
-	//splittedString1 := strings.Split(splittedString, " ")
-	fmt.Println("Final Hash: ")
-	for key, value := range h.Items {
-		fmt.Printf("[key: %d, value : %s %d ]", key, value.Word, value.Count)
-	}
-	println("\n")
-	return splittedString
+	//dataOrder(h)
+	return h
 }
 
 //SlaveJob slave work

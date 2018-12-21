@@ -1,6 +1,7 @@
 package comunication
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -43,4 +44,27 @@ func RegisterRPCNamedService(serviceName string, receiver interface{}) *rpc.Serv
 		log.Fatal("Format of ", rcvrType, " is not correct: ", err)
 	}
 	return server
+}
+
+// x = <-chan recive      chan <- x send     <-chan ingora risultato
+
+//CommunicationMasterSlave with Vice
+func CommunicationMasterSlave(ctx context.Context, countedWord <-chan []byte,
+	fileChunk chan<- []byte, errs <-chan error) {
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("finished")
+			return
+
+		case err := <-errs:
+			log.Println("an error occurred:", err)
+
+		/*case name := <-countedWord:
+			//greeting := "Hello " + string(name)
+			var x = <-countedWord
+		}*/
+
+	}
 }
