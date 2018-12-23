@@ -44,15 +44,12 @@ func main() {
 	fmt.Printf("%s\n", string(b))
 	fts.File = string(b)
 
-	st.TextParse(fts.File)
+	//st.TextParse(fts.File)
 
-	if 1 == 2 {
-
-		err = server.Call("Work.WordCount", fts, &msgFromServer)
-		if err != nil {
-			log.Fatal("Error in Work.WordCount: ", err)
-		}
-		fmt.Printf("Work.WordCount: %s\n", msgFromServer.Text)
+	err = server.Call("Work.WordCount", fts, &msgFromServer)
+	if err != nil {
+		log.Fatal("Error in Work.WordCount: ", err)
 	}
+	fmt.Printf("Work.WordCount: %s\n", msgFromServer.Text)
 
 }

@@ -7,7 +7,7 @@ var MasterAddress = "localhost:1234"
 var SlavePort = ":5678"
 
 // NumberOfSlave dio
-var NumberOfSlave = 5
+var NumberOfSlave = 1
 
 //BUFFERSIZE buffer chunk
 const BUFFERSIZE = 1024
