@@ -66,7 +66,7 @@ func (ht *ValueHashtable) Size() int {
 	return len(ht.Items)
 }
 
-// Increment the value of a key
+// Increment the value of a key of one by default
 func (ht *ValueHashtable) Increment(k Key) {
 	//i := Hash(k)
 	ht.Items[k]++
@@ -74,4 +74,9 @@ func (ht *ValueHashtable) Increment(k Key) {
 	v := &Value{string(k), j}
 	v.Count++
 	ht.Items[i] = *v*/
+}
+
+// Increment1 the value of a key by value
+func (ht *ValueHashtable) Increment1(k Key, value int) {
+	ht.Items[k] = ht.Items[k] + Value(value)
 }

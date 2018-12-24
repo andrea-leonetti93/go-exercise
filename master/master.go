@@ -5,10 +5,13 @@ package main
 
 import (
 	"fmt"
+	hash "go-exercise/hash"
 	com "go-exercise/libs/comunication"
 	st "go-exercise/libs/structs"
 	"log"
+	"net/rpc"
 	"time"
+	"unicode"
 )
 
 //BUFFERSIZE buffer chunk
@@ -28,10 +31,37 @@ type Call struct {
 	Done          chan *Call  // Strobes when call is complete.
 }*/
 
+func parseSpace(text string, dimChunk int, start int) (int, string) {
+	r := []rune(text)
+	if start+dimChunk > len(text) {
+		return start, text[start : len(text)-1]
+	}
+	for i := start + dimChunk; i < len(text); i++ {
+		if !unicode.IsLetter(r[i]) {
+			dimChunk = dimChunk + (i - dimChunk)
+			break
+		}
+	}
+	return dimChunk, text[start:dimChunk]
+}
+
+func splitText(text string, numOfSlave int) []string {
+	s := make([]string, numOfSlave)
+	dimChunk := len(text) / numOfSlave
+	start := 0
+	for i := 0; i < numOfSlave; i++ {
+		//s1 := text[:dimChunk]
+		pos, str := parseSpace(text, dimChunk, start)
+		start = pos + 1
+		s[i] = str
+	}
+	return s
+}
+
 //Map divide work between slaves
 func Map(fts *st.FileToSend, numOfSlave int) {
 	fileSize := len(fts.File)
-	//slaveCall := new(rpc.Call)
+	slaveCall := new(rpc.Call)
 	c := st.Counter{}
 	c.Count = 0
 	//chunkSize := fileSize / numOfSlave
@@ -40,28 +70,30 @@ func Map(fts *st.FileToSend, numOfSlave int) {
 	//slaveResult := make([]hash.ValueHashtable, numOfSlave)
 	slaveResult := make([]st.SlaveResponse, numOfSlave)
 	fmt.Printf("entro nel ciclo per mandare il lavoro agli slave\n")
+	s := splitText(fts.File, numOfSlave)
+	for i := 0; i < len(s); i++ {
+		fmt.Printf("s: %s\n", s[i])
+	}
 	for i := 0; i < numOfSlave; i++ {
 		//creazione parametri per lavoro master-slave
 		slaveResult[i].Counter = c
 		slaveText := st.SlaveData{}
-		slaveText.TextToParse = fts.File //[i*chunkSize : chunkSize]
-
+		//slaveText.TextToParse = fts.File //[i*chunkSize : chunkSize]
+		slaveText.TextToParse = s[i]
 		//richiesta servizio slave
 		server := com.ConnectToHost("localhost" + st.SlaveConnected[i].Port)
-		slaveCall := server.Go("SlaveData.LavoroSlave", slaveText, &slaveResult[i], nil)
-		/*		if slaveCall == nil {
-				log.Fatal("Error in SlaveData.LavoroSlave: ", slaveCall)
-			}*/
-		replyCall := <-slaveCall.Done
-		fmt.Printf("replycall", replyCall)
+		slaveCall = server.Go("SlaveData.LavoroSlave", slaveText, &slaveResult[i], nil)
+		/*if slaveCall == nil {
+			log.Fatal("Error in SlaveData.LavoroSlave: ", slaveCall)
+		}*/
 	}
 	//wait group
-
-	//	fmt.Printf("replycall", replyCall)
+	replyCall := <-slaveCall.Done
+	fmt.Printf("replycall", replyCall)
 	fmt.Printf("entro in wait group\n")
 	counter := 0
 	for {
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 		fmt.Printf("slaveresult counter: %d\n", slaveResult[0].Counter.Count)
 		for i := 0; i < numOfSlave; i++ {
 			if slaveResult[i].Counter.Count == 1 {
@@ -73,13 +105,18 @@ func Map(fts *st.FileToSend, numOfSlave int) {
 			fmt.Printf("esco dalla wait group\n")
 			break
 		}
-		//jobCompleted := <-slaveCall.Done
 	}
-	st.DataOrder(slaveResult[0].WordHashMap)
-	/*for h, v := range slaveResult {
-		for
-		a[k] = v
-	}*/
+	finalHash := hash.ValueHashtable{}
+	for i := 0; i < numOfSlave; i++ {
+		for k, v := range slaveResult[i].WordHashMap.Items {
+			if finalHash.IfWordExist(hash.Key(k)) != 0 {
+				finalHash.Increment1(hash.Key(k), int(v))
+			} else {
+				finalHash.Put(hash.Key(k), v)
+			}
+		}
+	}
+	st.DataOrder(finalHash)
 }
 
 // WordCount fnaculoi
