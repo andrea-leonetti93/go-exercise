@@ -1,5 +1,7 @@
 package hash
 
+import "fmt"
+
 //Key ciao
 type Key string
 
@@ -79,4 +81,11 @@ func (ht *ValueHashtable) Increment(k Key) {
 // Increment1 the value of a key by value
 func (ht *ValueHashtable) Increment1(k Key, value int) {
 	ht.Items[k] = ht.Items[k] + Value(value)
+}
+
+//PrintTable print hash table
+func (ht *ValueHashtable) PrintTable() {
+	for k, v := range ht.Items {
+		fmt.Printf("key: %s, value: %d\n", k, v)
+	}
 }

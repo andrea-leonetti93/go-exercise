@@ -42,7 +42,7 @@ type ResponseRequest struct {
 
 // SecondSlaveAddress
 type SecondSlaveAddress struct {
-	SeconeLevelAddress []JoinRequest
+	SecondLevelAddress []JoinRequest
 }
 
 //SlaveConnected : list of slaves connected
@@ -58,8 +58,8 @@ func (j *JoinRequest) Join1(join *JoinRequest, result *SecondSlaveAddress) error
 	//s := infoSlave{join.Address, join.Port}
 	SlaveConnected = append(SlaveConnected, *join)
 	fmt.Printf("SecondLevelSlave %v\n", SecondLevelSlaveAddress)
-	result.SeconeLevelAddress = SecondLevelSlaveAddress
-	fmt.Printf("slave connected list %v", SlaveConnected)
+	result.SecondLevelAddress = SecondLevelSlaveAddress
+	fmt.Printf("slave connected list %v\n", SlaveConnected)
 	return nil
 }
 
@@ -68,7 +68,7 @@ func (j *JoinRequest) Join2(join *JoinRequest, result *ResponseRequest) error {
 	//s := infoSlave{join.Address, join.Port}
 	SecondLevelSlaveAddress = append(SecondLevelSlaveAddress, *join)
 	result.ResponseMessage = "Join done"
-	fmt.Printf("slave connected list %v", SecondLevelSlaveAddress)
+	fmt.Printf("slave connected list %v\n", SecondLevelSlaveAddress)
 	return nil
 }
 
@@ -101,15 +101,22 @@ func (s *SlaveData) LavoroSlave(text SlaveData, result *SlaveResponse) error {
 	fmt.Printf("start text to pars\n")
 	hashList := TextParse(text.TextToParse) //[]valueHashtable
 	fmt.Printf("finito txt to parse\n")
+	fmt.Printf("hash 1\n")
+	hashList[0].PrintTable()
+	fmt.Printf("hash 2\n")
+	hashList[1].PrintTable()
+	fmt.Printf("hash 3\n")
+	hashList[2].PrintTable()
 	result.Counter.lock.Lock()
 	result.Counter.Count++
 	fmt.Printf("counter: %d\n", result.Counter.Count)
 	defer result.Counter.lock.Unlock()
 	secondSlaveResult := make([]SlaveResponse, NumberOfSlave)
+	fmt.Printf("number of second level slave: %d\n", len(SecondLevelSlaveAddress))
 	for i := 0; i < NumberOfSlave; i++ {
 		add := SecondLevelSlaveAddress[i].Address
 		port := SecondLevelSlaveAddress[i].Port
-
+		fmt.Printf("indirizzo slave secondo livello: N=%d, add=%s\n", i, add+port)
 		server := com.ConnectToHost(add + port)
 		slaveCall = server.Go("SlaveResponse.SortAndReduce", hashList[i], &secondSlaveResult[i], nil)
 	}
@@ -156,6 +163,10 @@ func DataOrder(h hash.ValueHashtable) {
 	/*for _, k := range keys {
 		fmt.Println("Key:", k, "Value:", hash.Items[k])
 	}*/
+}
+
+func TextToParse2(text string) {
+
 }
 
 // TextParse ciao  returned hash.ValueHashtable
@@ -208,12 +219,15 @@ type CounterSecondLevel struct {
 // HashCounter
 var HashCounter CounterSecondLevel
 
-// MixShuffle order the elements of the hashtable
-func (sr *SlaveResponse) SortAndReduce(partialHash *SlaveResponse, result *SlaveResponse) error {
+// SortAndReduce order the elements of the hashtable
+func (sr *SlaveResponse) SortAndReduce(partialHash *hash.ValueHashtable, result *SlaveResponse) error {
+	fmt.Printf("entro in SortAndReduce!!!!!!\n")
+	fmt.Printf("printing hash \n")
+	partialHash.PrintTable()
 	//contatore che conta gli accessi
 	HashCounter.lock.Lock()
 	// copiare hash table in quella globale e incrementare counter
-	for k := range partialHash.WordHashMap.Items {
+	for k := range partialHash.Items {
 		if HashCounter.finalHashTable.IfWordExist(hash.Key(k)) != 0 {
 			HashCounter.finalHashTable.Increment(hash.Key(k))
 		} else {
@@ -221,6 +235,8 @@ func (sr *SlaveResponse) SortAndReduce(partialHash *SlaveResponse, result *Slave
 		}
 	}
 	HashCounter.Counter++
+	fmt.Printf("creata hash finale!!\n")
+	HashCounter.finalHashTable.PrintTable()
 	defer HashCounter.lock.Unlock()
 	//aspettare che l'hash table finale sia riempita da tutti i processi--> counter == 3
 	for {

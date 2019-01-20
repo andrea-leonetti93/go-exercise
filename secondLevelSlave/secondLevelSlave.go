@@ -18,7 +18,7 @@ func main() {
 	server := com.ConnectToHost(*serverAddress)
 
 	secondSlave := new(st.SlaveResponse)
-	slaveServer := com.RegisterRPCNamedService("SortAndReduce", secondSlave)
+	slaveServer := com.RegisterRPCNamedService("SlaveResponse", secondSlave)
 	//todo passare riferimento alle strutture di join del master
 	jr := st.JoinRequest{"localhost", *slavePort}
 	var msgFromServer = &st.ResponseRequest{}
