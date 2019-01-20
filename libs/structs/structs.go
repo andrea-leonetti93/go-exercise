@@ -98,7 +98,9 @@ func (s *SlaveData) LavoroSlave(text SlaveData, result *SlaveResponse) error {
 	slaveCall := new(rpc.Call)
 	//result.WordHashMap.Items = TextParse(text.TextToParse)
 	// 3 hashtable divise per i tre slave di secondo livello
+	fmt.Printf("start text to pars\n")
 	hashList := TextParse(text.TextToParse) //[]valueHashtable
+	fmt.Printf("finito txt to parse\n")
 	result.Counter.lock.Lock()
 	result.Counter.Count++
 	fmt.Printf("counter: %d\n", result.Counter.Count)
@@ -109,7 +111,7 @@ func (s *SlaveData) LavoroSlave(text SlaveData, result *SlaveResponse) error {
 		port := SecondLevelSlaveAddress[i].Port
 
 		server := com.ConnectToHost(add + port)
-		slaveCall = server.Go("SlaveResponse.MixShuffle", hashList[i], &secondSlaveResult[i], nil)
+		slaveCall = server.Go("SlaveResponse.SortAndReduce", hashList[i], &secondSlaveResult[i], nil)
 	}
 	replyCall := <-slaveCall.Done
 	fmt.Printf("replycall", replyCall)
@@ -207,7 +209,7 @@ type CounterSecondLevel struct {
 var HashCounter CounterSecondLevel
 
 // MixShuffle order the elements of the hashtable
-func (sr *SlaveResponse) MixShuffle(partialHash *SlaveResponse, result *SlaveResponse) error {
+func (sr *SlaveResponse) SortAndReduce(partialHash *SlaveResponse, result *SlaveResponse) error {
 	//contatore che conta gli accessi
 	HashCounter.lock.Lock()
 	// copiare hash table in quella globale e incrementare counter

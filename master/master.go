@@ -128,11 +128,11 @@ func Map(fts *st.FileToSend, numOfSlave int) {
 // WordCount fnaculoi
 func (t *Work) WordCount(fts *st.FileToSend, result *st.StringMsg) error {
 	fmt.Printf("textToParse: %s\n", string(fts.File))
-	for {
+	/*for {
 		if len(st.SlaveConnected) == st.NumberOfSlave {
 			break
 		}
-	}
+	}*/
 	Map(fts, len(st.SlaveConnected))
 	result.Text = "Text received"
 	return nil
