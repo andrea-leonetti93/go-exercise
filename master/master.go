@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	hash "go-exercise/hash"
 	com "go-exercise/libs/comunication"
 	st "go-exercise/libs/structs"
 	"log"
@@ -104,9 +103,15 @@ func Map(fts *st.FileToSend, numOfSlave int) {
 		if counter == numOfSlave {
 			fmt.Printf("esco dalla wait group\n")
 			break
+		} else {
+			counter = 0
 		}
 	}
-	finalHash := hash.ValueHashtable{}
+	/*
+	* questo va eliminato perché da result arrivano tutte le hash già ordinate
+	* in slaveResult[]
+	 */
+	/*finalHash := hash.ValueHashtable{}
 	for i := 0; i < numOfSlave; i++ {
 		for k, v := range slaveResult[i].WordHashMap.Items {
 			if finalHash.IfWordExist(hash.Key(k)) != 0 {
@@ -116,7 +121,8 @@ func Map(fts *st.FileToSend, numOfSlave int) {
 			}
 		}
 	}
-	st.DataOrder(finalHash)
+	st.DataOrder(finalHash)*/
+	fmt.Printf("restituite tutte le hash table da tutti gli slave di primo livello\n")
 }
 
 // WordCount fnaculoi
@@ -138,11 +144,25 @@ func main() {
 
 	//server := rpc.NewServer()
 	server := com.RegisterRPCNamedService("Work", work)
-	join := new(st.JoinRequest)
-	server.RegisterName("JoinRequest", join)
+	join1 := new(st.JoinRequest)
+	join2 := new(st.JoinRequest)
+	server.RegisterName("JoinRequest1", join1)
+	server.RegisterName("JoinRequest2", join2)
 
 	l := com.CreatePortListener(st.MasterAddress)
-
+	n := 3
+	y := 26 / n
+	x := 102
+	sot := 122 - x
+	div := sot / y
+	resto := sot % n
+	if div == 0 {
+		fmt.Printf("primo gruppo")
+	} else if resto == 0 {
+		fmt.Printf("resto = 0 --> gruppo numero: %d\n", div)
+	} else if resto != 0 {
+		fmt.Printf("resto != 0 --> gruppo numero: %d\n", div+1)
+	}
 	timeout := 0
 
 	for {

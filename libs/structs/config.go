@@ -6,7 +6,7 @@ var MasterAddress = "localhost:1234"
 // SlavePort macro
 var SlavePort = ":5678"
 
-// NumberOfSlave dio
+// NumberOfSlave of first and second level
 var NumberOfSlave = 2
 
 //BUFFERSIZE buffer chunk

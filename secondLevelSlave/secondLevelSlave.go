@@ -17,17 +17,17 @@ func main() {
 
 	server := com.ConnectToHost(*serverAddress)
 
-	slaveData := new(st.SlaveData)
-	slaveServer := com.RegisterRPCNamedService("SlaveData", slaveData)
+	secondSlave := new(st.SecondSlaveAddress)
+	slaveServer := com.RegisterRPCNamedService("MixShuffle", secondSlave)
 	//todo passare riferimento alle strutture di join del master
 	jr := st.JoinRequest{"localhost", *slavePort}
-	var msgFromServer = &st.ResponseRequest{}
+	var msgFromServer = &st.SlaveResponse{}
 
-	err := server.Call("JoinRequest.Join", jr, msgFromServer)
+	err := server.Call("JoinRequest2.Join2", jr, msgFromServer)
 	if err != nil {
-		log.Fatal("Error in JoinRequest.Join: ", err)
+		log.Fatal("Error in JoinRequest2.Join2: ", err)
 	}
-	fmt.Printf("JoinRequest.Join: %s\n", msgFromServer.ResponseMessage)
+	fmt.Printf("JoinRequest2.Join: %s\n")
 
 	slaveAddress := "localhost" + *slavePort
 	fmt.Printf("slave address: %s\n", slaveAddress)

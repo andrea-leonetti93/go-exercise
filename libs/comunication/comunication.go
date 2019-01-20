@@ -8,6 +8,13 @@ import (
 	"reflect"
 )
 
+// SlavePorts
+/*var SlavePorts []string
+
+func createSlavePortNumber(numbSlave int) {
+
+}*/
+
 //se uso la prima lettera di una funzione maiuscola -> pubbliche
 //se uso la prima lettera di una funzione minuscola -> private
 

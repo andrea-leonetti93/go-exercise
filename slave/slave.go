@@ -21,13 +21,14 @@ func main() {
 	slaveServer := com.RegisterRPCNamedService("SlaveData", slaveData)
 	//todo passare riferimento alle strutture di join del master
 	jr := st.JoinRequest{"localhost", *slavePort}
-	var msgFromServer = &st.ResponseRequest{}
+	var msgFromServer = &st.SecondSlaveAddress{}
 
-	err := server.Call("JoinRequest.Join", jr, msgFromServer)
-	if err != nil {
-		log.Fatal("Error in JoinRequest.Join: ", err)
+	error := server.Call("JoinRequest1.Join1", jr, msgFromServer)
+	if error != nil {
+		log.Fatal("Error in JoinRequest1.Join1: ", error)
 	}
-	fmt.Printf("JoinRequest.Join: %s\n", msgFromServer.ResponseMessage)
+	//fmt.Printf("JoinRequest1.Join1: %s\n", msgFromServer.ResponseMessage)
+	fmt.Printf("Address slave: %s\n", msgFromServer)
 
 	slaveAddress := "localhost" + *slavePort
 	fmt.Printf("slave address: %s\n", slaveAddress)
