@@ -83,6 +83,16 @@ func (ht *ValueHashtable) Increment1(k Key, value int) {
 	ht.Items[k] = ht.Items[k] + Value(value)
 }
 
+// IncrementByValue the value of a key of valueToAdd quantity
+func (ht *ValueHashtable) IncrementByValue(k Key, valueToAdd Value) {
+	//i := Hash(k)
+	ht.Items[k] += valueToAdd
+	/*j := ht.Items[i].Count
+	v := &Value{string(k), j}
+	v.Count++
+	ht.Items[i] = *v*/
+}
+
 //PrintTable print hash table
 func (ht *ValueHashtable) PrintTable() {
 	for k, v := range ht.Items {

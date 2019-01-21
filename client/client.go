@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 
 	com "go-exercise/libs/comunication"
@@ -30,13 +28,13 @@ func main() {
 	//msgToSend := &st.StringMsg{textToParse}
 	var msgFromServer = &st.StringMsg{}
 
-	reader := bufio.NewReader(os.Stdin)
+	/*reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Insert the file path of the file to send: ")
 	fileToSend, _ := reader.ReadString('\n')
-	fmt.Printf("fileToSend: %s\n", fileToSend)
+	fmt.Printf("fileToSend: %s\n", fileToSend)*/
 	fts := st.FileToSend{}
 
-	replace := strings.Replace(fileToSend, "\n", "", 1)
+	replace := strings.Replace(*textToParse, "\n", "", 1)
 	b, err := ioutil.ReadFile(replace)
 	if err != nil {
 		fmt.Println(err)

@@ -5,6 +5,7 @@ import (
 	hash "go-exercise/hash"
 	com "go-exercise/libs/comunication"
 	"net/rpc"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -147,76 +148,92 @@ func (s *SlaveData) LavoroSlave(text SlaveData, result *SlaveResponse) error {
 }
 
 //DataOrder all the data in the hashmap
-func DataOrder(h hash.ValueHashtable) {
-	//var keys []int
+func DataOrder(h hash.ValueHashtable) hash.ValueHashtable {
+
+	htOrdered := hash.ValueHashtable{}
+
+	//slice di appoggio per l'ordinamento delle chiavi
 	keys := make([]string, 0, h.Size())
 	for k := range h.Items {
 		keys = append(keys, string(k))
 	}
-	//sort.Ints(keys)
+
 	sort.Strings(keys)
 	// To perform the opertion you want
 	for _, k := range keys {
-		fmt.Println(k, h.Items[hash.Key(k)])
+		htOrdered.Put(hash.Key(k), h.Items[hash.Key(k)])
+		//fmt.Println(k, h.Items[hash.Key(k)])
 	}
-
-	/*for _, k := range keys {
-		fmt.Println("Key:", k, "Value:", hash.Items[k])
-	}*/
+	return htOrdered
 }
 
-func TextToParse2(text string) {
-
+//ParseTextToSlice tokenize input text
+func ParseTextToSlice(rawText string) []string {
+	// torna true se c e' una lettera
+	f := func(c rune) bool {
+		return !unicode.IsLetter(c)
+	}
+	// crea uno slice di stringhe usando f come funzione di split
+	tokensOfStrings := strings.FieldsFunc(rawText, f)
+	return tokensOfStrings
 }
 
-// TextParse ciao  returned hash.ValueHashtable
-func TextParse(text string) []hash.ValueHashtable {
-	var splittedString []string
-	word := ""
+//NormalizeString string to lower case
+func NormalizeString(rawString string) string {
+	return strings.ToLower(rawString)
+}
+
+//GetHashTableIndex Index finds the correct hashtable index to put word in
+func GetHashTableIndex(word string) int {
+	primoRangeRX := regexp.MustCompile("^[a-i]{1}")
+	secondoRangeRX := regexp.MustCompile("^[j-r]{1}")
+	terzoRangeRX := regexp.MustCompile("^[s-z]{1}")
+
+	switch {
+	case primoRangeRX.MatchString(word):
+		return 0
+	case secondoRangeRX.MatchString(word):
+		return 1
+	case terzoRangeRX.MatchString(word):
+		return 2
+	}
+	return -1
+}
+
+//TextParse fills hashtable
+func TextParse(rawText string) []hash.ValueHashtable {
+
 	h := make([]hash.ValueHashtable, NumberOfSlave)
-	//h := hash.ValueHashtable{}
-	for _, r := range text {
+	tokens := ParseTextToSlice(rawText)
 
-		if !unicode.IsLetter(r) && word != "" {
-			//key := hash.Key(word)
-			word = strings.ToLower(word)
-			splittedString = append(splittedString, word)
-			i := 0
-			if int(r) <= 105 {
-				i = 0
-			} else if 106 <= int(r) && int(r) <= 114 {
-				i = 1
-			} else {
-				i = 2
-			}
-			if h[i].IfWordExist(hash.Key(word)) != 0 {
-				h[i].Increment(hash.Key(word))
-			} else {
-				//v := hash.Value{word, 1}
+	for _, word := range tokens {
+		//lower case string
+		word = NormalizeString(word)
+		tableIndex := GetHashTableIndex(word)
 
-				h[i].Put(hash.Key(word), 1)
-			}
-			word = ""
-		} else {
-			if !unicode.IsSpace(r) {
-				word += string(r)
+		//if table index is valid
+		if tableIndex != -1 {
+			if h[tableIndex].IfWordExist(hash.Key(word)) != 0 {
+				h[tableIndex].Increment(hash.Key(word))
+			} else {
+				h[tableIndex].Put(hash.Key(word), 1)
 			}
 		}
+
 	}
-	//dataOrder(h)
 	return h
 }
 
 ///////// second level slave
 
-// CounterSecondLevel
+// CounterSecondLevel boh
 type CounterSecondLevel struct {
 	Counter        int
 	lock           sync.RWMutex
 	finalHashTable hash.ValueHashtable
 }
 
-// HashCounter
+// HashCounter boh
 var HashCounter CounterSecondLevel
 
 // SortAndReduce order the elements of the hashtable
@@ -227,27 +244,31 @@ func (sr *SlaveResponse) SortAndReduce(partialHash *hash.ValueHashtable, result 
 	//contatore che conta gli accessi
 	HashCounter.lock.Lock()
 	// copiare hash table in quella globale e incrementare counter
-	for k := range partialHash.Items {
+	for k, v := range partialHash.Items {
 		if HashCounter.finalHashTable.IfWordExist(hash.Key(k)) != 0 {
-			HashCounter.finalHashTable.Increment(hash.Key(k))
+			HashCounter.finalHashTable.IncrementByValue(hash.Key(k), v)
 		} else {
 			HashCounter.finalHashTable.Put(hash.Key(k), 1)
 		}
 	}
 	HashCounter.Counter++
 	fmt.Printf("creata hash finale!!\n")
+	fmt.Printf("valore counter: %d", HashCounter.Counter)
 	HashCounter.finalHashTable.PrintTable()
 	defer HashCounter.lock.Unlock()
 	//aspettare che l'hash table finale sia riempita da tutti i processi--> counter == 3
+	fmt.Printf("entro nel for del counter")
 	for {
 		if HashCounter.Counter == 3 {
 			break
 		}
 	}
 	// ordiniamo i valori per la hash table finale
-	DataOrder(HashCounter.finalHashTable)
+	HashCounter.finalHashTable = DataOrder(HashCounter.finalHashTable)
 	//la rimandiamo indietro a tutti gli slave del primo livello
 	result.Counter.Count++
+	fmt.Printf("\nRisultato ordinamento chiavi:\n")
+	HashCounter.finalHashTable.PrintTable()
 	result.WordHashMap = HashCounter.finalHashTable
 	return nil
 }
