@@ -159,11 +159,15 @@ func DataOrder(h hash.ValueHashtable) hash.ValueHashtable {
 	}
 
 	sort.Strings(keys)
+	fmt.Printf("keys: %v\n", keys)
 	// To perform the opertion you want
 	for _, k := range keys {
 		htOrdered.Put(hash.Key(k), h.Items[hash.Key(k)])
-		//fmt.Println(k, h.Items[hash.Key(k)])
+		//fmt.Println(k, htOrdered.Items[hash.Key(k)])
 	}
+
+	htOrdered.PrintTable()
+
 	return htOrdered
 }
 
@@ -248,14 +252,14 @@ func (sr *SlaveResponse) SortAndReduce(partialHash *hash.ValueHashtable, result 
 		if HashCounter.finalHashTable.IfWordExist(hash.Key(k)) != 0 {
 			HashCounter.finalHashTable.IncrementByValue(hash.Key(k), v)
 		} else {
-			HashCounter.finalHashTable.Put(hash.Key(k), 1)
+			HashCounter.finalHashTable.Put(hash.Key(k), v)
 		}
 	}
 	HashCounter.Counter++
 	fmt.Printf("creata hash finale!!\n")
 	fmt.Printf("valore counter: %d", HashCounter.Counter)
 	HashCounter.finalHashTable.PrintTable()
-	defer HashCounter.lock.Unlock()
+	HashCounter.lock.Unlock()
 	//aspettare che l'hash table finale sia riempita da tutti i processi--> counter == 3
 	fmt.Printf("entro nel for del counter")
 	for {

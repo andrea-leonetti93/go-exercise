@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	hash "go-exercise/hash"
 	com "go-exercise/libs/comunication"
 	st "go-exercise/libs/structs"
 	"log"
@@ -58,7 +59,7 @@ func splitText(text string, numOfSlave int) []string {
 }
 
 //Map divide work between slaves
-func Map(fts *st.FileToSend, numOfSlave int) {
+func Map(fts *st.FileToSend, numOfSlave int) hash.ValueHashtable {
 	fileSize := len(fts.File)
 	slaveCall := new(rpc.Call)
 	c := st.Counter{}
@@ -123,18 +124,18 @@ func Map(fts *st.FileToSend, numOfSlave int) {
 	}
 	st.DataOrder(finalHash)*/
 	fmt.Printf("restituite tutte le hash table da tutti gli slave di primo livello\n")
+	return slaveResult[0].WordHashMap
 }
 
 // WordCount fnaculoi
-func (t *Work) WordCount(fts *st.FileToSend, result *st.StringMsg) error {
+func (t *Work) WordCount(fts *st.FileToSend, result *st.SlaveResponse) error {
 	fmt.Printf("textToParse: %s\n", string(fts.File))
 	/*for {
 		if len(st.SlaveConnected) == st.NumberOfSlave {
 			break
 		}
 	}*/
-	Map(fts, len(st.SlaveConnected))
-	result.Text = "Text received"
+	result.WordHashMap = Map(fts, len(st.SlaveConnected))
 	return nil
 }
 

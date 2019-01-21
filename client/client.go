@@ -26,7 +26,7 @@ func main() {
 	server := com.ConnectToHost(*serverAddress)
 
 	//msgToSend := &st.StringMsg{textToParse}
-	var msgFromServer = &st.StringMsg{}
+	var msgFromServer = &st.SlaveResponse{}
 
 	/*reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Insert the file path of the file to send: ")
@@ -48,6 +48,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error in Work.WordCount: ", err)
 	}
-	fmt.Printf("Work.WordCount: %s\n", msgFromServer.Text)
+	msgFromServer.WordHashMap.PrintTable()
 
 }
